@@ -60,6 +60,9 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
+      # gh reads the repository off the checkout; without it the run fails with
+      # "failed to run git: fatal: not a git repository".
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           pattern: mentoring-planner-*
@@ -67,4 +70,11 @@ jobs:
       - name: attach the executables to this tag
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" --generate-notes mentoring-planner mentoring-planner.exe
+        run: |
+          ls -l mentoring-planner mentoring-planner.exe
+          gh release create "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "$GITHUB_REF_NAME" \
+            --notes "Download \`mentoring-planner.exe\` and double click it: a window opens where you pick the workbook, or build a new one. It is built from the tagged commit of this repository, and the source is under GPL-3.0-or-later. On the command line, \`mentoring-planner.exe sheet.xlsx\` plans a workbook and writes the result back into it." \
+            mentoring-planner mentoring-planner.exe
