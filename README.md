@@ -77,3 +77,9 @@ uv run pyinstaller --clean mentoring-planner.spec   # -> dist/mentoring-planner(
 GitHub Actions (`.github/workflows/ci.yml`) runs the tests on every push and pull request,
 builds the Windows and Linux executables on every push to `main` as artifacts, and attaches
 them to a GitHub release when a `v*` tag is pushed.
+
+## License
+
+GPL-3.0-or-later, see [LICENSE](LICENSE). Copy it, change it, run it at school - and pass on
+the source when you hand out a changed version. The executables the release job attaches to a
+tag are built from the tagged commit of this repository, which is their source.
