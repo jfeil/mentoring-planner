@@ -43,8 +43,10 @@ README = [
     "  Every group does every topic exactly once, so it has one session per topic. A",
     "  week may hold several sessions for one group; the planner spreads them where it can.",
     "",
-    "Fill in the peer surnames and the trips, then run the planner. The sheets Plan,",
-    "Sessions, Loads, Overview and Notes are written for you.",
+    "Fill in the peer surnames and the trips, then run the planner: double click",
+    "mentoring-planner.exe and a window opens where you pick this file, or run",
+    "'python main.py <this file>' in a shell. The sheets Plan, Sessions, Loads, Overview",
+    "and Notes are written for you - they are replaced on every run.",
 ]
 
 
@@ -145,7 +147,7 @@ def write_scaffold(path: Path, spec: Spec) -> Path:
     for row in spec.peer_rows if spec.peer_rows is not None else _blank_peers(spec):
         peers.append(list(row))
 
-    trips = spec.trips or _example_trips(spec)
+    trips = spec.trips or example_trips(spec)
 
     calendar = wb.create_sheet("Calendar")
     _header(calendar, ["Class"] + list(spec.week_labels))
@@ -178,7 +180,7 @@ def write_scaffold(path: Path, spec: Spec) -> Path:
     return path
 
 
-def _example_trips(spec: Spec) -> dict[str, list[int]]:
+def example_trips(spec: Spec) -> dict[str, list[int]]:
     """One trip per tutored class, each in a different week.
 
     A template with no trip marks at all can never be planned - a room only exists

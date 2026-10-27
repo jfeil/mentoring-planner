@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mentoring planner</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { color-scheme: light; }
+  body { font: 15px/1.5 system-ui, sans-serif; margin: 0; background: #f4f5f7; color: #1c1e21; }
+  header { background: #2f4a75; color: #fff; padding: 18px 24px; }
+  header h1 { margin: 0; font-size: 20px; font-weight: 600; }
+  header p { margin: 4px 0 0; opacity: .8; font-size: 14px; }
+  main { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+         max-width: 940px; margin: 24px auto; padding: 0 16px; }
+  section { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  section h2 { margin: 0 0 4px; font-size: 17px; }
+  section > p { margin: 0 0 16px; color: #5a6069; font-size: 14px; }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 3px; }
+  input[type=text], input[type=date], input[type=number], input[type=file] {
+    width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #c3c8d1; border-radius: 6px;
+    font: inherit; background: #fff;
+  }
+  .row { display: flex; gap: 12px; }
+  .row > div { flex: 1; }
+  button { margin-top: 18px; padding: 10px 16px; border: 0; border-radius: 6px; background: #2f4a75;
+           color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+  button:hover { background: #22375a; }
+  .hint { font-size: 13px; color: #5a6069; margin-top: 6px; }
+  .error { background: #fdecec; border: 1px solid #e2a6a6; border-radius: 8px; padding: 12px 14px;
+           max-width: 860px; margin: 20px auto; white-space: pre-wrap; font-family: ui-monospace, monospace;
+           font-size: 13px; }
+  footer { max-width: 940px; margin: 0 auto 40px; padding: 0 16px; color: #5a6069; font-size: 13px; }
+  footer code { background: #e6e8ec; padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Mentoring planner</h1>
+  <p>Every group gets one session per topic, in a week when a room is free.</p>
+</header>
+
+{{error}}
+
+<main>
+  <section>
+    <h2>Plan a workbook</h2>
+    <p>Upload the sheet with the <em>Groups</em>, <em>Peers</em> and <em>Calendar</em> tabs.
+       The planned workbook is downloaded, with the tabs <em>Plan</em>, <em>Sessions</em>,
+       <em>Loads</em>, <em>Overview</em> and <em>Notes</em> added.</p>
+    <form method="post" action="/plan" enctype="multipart/form-data">
+      <label for="workbook">Workbook (.xlsx)</label>
+      <input type="file" id="workbook" name="workbook" accept=".xlsx,.xlsm" required>
+      <button type="submit">Plan it</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Create a workbook</h2>
+    <p>Start from an empty sheet: the groups are named for you, the calendar is a grid
+       you mark your trips in.</p>
+    <form method="get" action="/template">
+      <label for="classes">Classes and how many groups each is split into</label>
+      <input type="text" id="classes" name="classes" value="6a:2 6b:2 6c:2" required>
+      <div class="hint">one entry per class, <code>name:groups</code></div>
+
+      <label for="peer_classes">Classes the older peers come from</label>
+      <input type="text" id="peer_classes" name="peer_classes" value="9a 9b 10a 10b">
+      <div class="hint">their trips only make the peers unavailable, they open no room</div>
+
+      <label for="topics">Topics</label>
+      <input type="text" id="topics" name="topics" value="Reading Maths Science Media" required>
+
+      <div class="row">
+        <div>
+          <label for="start">First week starts</label>
+          <input type="date" id="start" name="start" required>
+        </div>
+        <div>
+          <label for="count">Number of weeks</label>
+          <input type="number" id="count" name="count" value="10" min="1" max="53" required>
+        </div>
+      </div>
+      <button type="submit">Next: mark the trips</button>
+    </form>
+  </section>
+</main>
+
+<footer>
+  On the command line: <code>main.py sheet.xlsx</code> plans, <code>main.py --new out.xlsx
+  --classes 6a:2 6b:2</code> creates a template, <code>main.py --sample</code> writes an
+  example semester.
+</footer>
+</body>
+</html>

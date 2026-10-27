@@ -5,6 +5,9 @@
     uv run python main.py input.xlsx --out plan.xlsx
     uv run python main.py --new template.xlsx --classes 6a:2 6b:2 --topics Reading Maths
     uv run python main.py --app               # open the browser front end
+
+The same file is the entry point of the bundled executable: run mentoring-planner.exe
+with no arguments and it serves the browser front end.
 """
 
 from __future__ import annotations
@@ -20,8 +23,20 @@ from solver.report import write_plan
 from solver.sample import write_sample_workbook
 from solver.scaffold import Spec, mondays, parse_classes, write_scaffold
 
-DEFAULT_INPUT = Path("example/input.xlsx")
 TEN_WEEKS_AHEAD = 10
+
+
+def default_workbook() -> Path:
+    """Where to look when no workbook is named.
+
+    In the bundled exe that is the folder of the exe itself, so a double click on
+    a sheet sitting next to it works, and an unprompted run does not try to write
+    into whatever directory windows happens to start the process from.
+    """
+
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent / "input.xlsx"
+    return Path("example/input.xlsx")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -30,8 +45,8 @@ def main(argv: list[str] | None = None) -> int:
         "workbook",
         nargs="?",
         type=Path,
-        default=DEFAULT_INPUT,
-        help=f"workbook with the Groups, Peers and Calendar sheets (default: {DEFAULT_INPUT})",
+        default=None,
+        help=f"workbook with the Groups, Peers and Calendar sheets (default: {default_workbook()})",
     )
     parser.add_argument(
         "--out",
@@ -76,12 +91,31 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="serve the browser front end and print its address",
     )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=0,
+        help="port for --app (default: a free one)",
+    )
+    parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="with --app, do not open a browser window",
+    )
     args = parser.parse_args(argv)
 
-    if args.app:
-        from solver.web import serve
+    if args.workbook is None:
+        # The bundled exe is meant to be double clicked: with nothing named it opens
+        # the front end. On the command line the example workbook is the friendly default.
+        if getattr(sys, "frozen", False) and not (args.sample or args.new):
+            args.app = True
+        else:
+            args.workbook = default_workbook()
 
-        return serve()
+    if args.app:
+        from solver.app import serve
+
+        return serve(port=args.port, open_browser=not args.no_browser)
 
     if args.new:
         try:

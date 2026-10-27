@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mark the trips</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { color-scheme: light; }
+  body { font: 15px/1.5 system-ui, sans-serif; margin: 0; background: #f4f5f7; color: #1c1e21; }
+  header { background: #2f4a75; color: #fff; padding: 18px 24px; }
+  header h1 { margin: 0; font-size: 20px; font-weight: 600; }
+  header p { margin: 4px 0 0; opacity: .8; font-size: 14px; }
+  main { max-width: 1080px; margin: 24px auto; padding: 0 16px; }
+  section { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.12);
+            margin-bottom: 20px; }
+  section h2 { margin: 0 0 4px; font-size: 17px; }
+  section > p { margin: 0 0 16px; color: #5a6069; font-size: 14px; }
+  .summary { font-size: 14px; color: #3d434c; }
+  .summary b { font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { border: 1px solid #d8dce2; padding: 6px 8px; text-align: center; }
+  th.week { background: #eef1f6; font-weight: 600; white-space: nowrap; }
+  th.week span { display: block; font-weight: 400; font-size: 12px; color: #5a6069; }
+  th.cls, td.cls { text-align: left; font-weight: 600; background: #fafbfc; white-space: nowrap; }
+  td.peer { background: #f6f8fb; }
+  td input[type=checkbox] { width: 18px; height: 18px; margin: 0; cursor: pointer; }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 3px; }
+  input[type=text], input[type=number] { padding: 8px; border: 1px solid #c3c8d1; border-radius: 6px;
+    font: inherit; }
+  .row { display: flex; gap: 16px; flex-wrap: wrap; align-items: end; }
+  .row > div { flex: 1 1 220px; }
+  button { margin-top: 18px; padding: 10px 16px; border: 0; border-radius: 6px; background: #2f4a75;
+           color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+  button:hover { background: #22375a; }
+  a.back { display: inline-block; margin-top: 18px; color: #2f4a75; }
+  .error { background: #fdecec; border: 1px solid #e2a6a6; border-radius: 8px; padding: 12px 14px;
+           margin-bottom: 20px; white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: 13px; }
+  .hint { font-size: 13px; color: #5a6069; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Mark the trips</h1>
+  <p>A room exists only in a week when one of the tutored classes is away.</p>
+</header>
+
+<main>
+{{error}}
+
+<section>
+  <h2>The plan this sheet covers</h2>
+  <p class="summary">{{summary}}</p>
+  <a class="back" href="/">&larr; change the classes and weeks</a>
+</section>
+
+<section>
+  <h2>Class trips</h2>
+  <p>Tick the weeks each class is on a trip. Rows marked <em>peers</em> only decide when
+     those peers are unavailable; they never open a room. The example trips are there so
+     the sheet can be planned at once - replace them with yours.</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead>
+      <tr><th class="cls">Class</th>{{weeks}}</tr>
+    </thead>
+    <tbody>
+{{grid}}
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>Limits and blocked weeks</h2>
+  <form method="post" action="/template/create">
+{{fields}}
+    <div class="row">
+      <div>
+        <label for="peer_cap">Max sessions per peer</label>
+        <input type="number" id="peer_cap" name="peer_cap" min="1" max="99" value="4">
+        <div class="hint">for peers that leave their own limit blank</div>
+      </div>
+      <div>
+        <label for="group_week_cap">Max sessions per group per week</label>
+        <input type="number" id="group_week_cap" name="group_week_cap" min="1" max="99" value="2">
+        <div class="hint">blank leaves a group free to stack a week</div>
+      </div>
+    </div>
+    <label for="blackouts">No mentoring in these weeks</label>
+    <input type="text" id="blackouts" name="blackouts" size="60"
+           placeholder="holidays, exam weeks, project weeks" value="{{blackouts}}">
+    <div class="hint">week numbers separated by commas, e.g. {{week_list}}</div>
+    <button type="submit">Create the workbook</button>
+    <button type="submit" name="plan" value="1">Create and plan it</button>
+  </form>
+</section>
+</main>
+</body>
+</html>
