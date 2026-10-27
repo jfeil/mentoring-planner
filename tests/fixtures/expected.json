@@ -1,0 +1,99 @@
+{
+  "open_weeks": [
+    34,
+    35,
+    36,
+    38,
+    39
+  ],
+  "sessions": [
+    {
+      "week": 39,
+      "group": "6a.1",
+      "topic": "Maths",
+      "peer": "Reuter; Tolles"
+    },
+    {
+      "week": 35,
+      "group": "6a.1",
+      "topic": "Media",
+      "peer": "Simon"
+    },
+    {
+      "week": 36,
+      "group": "6a.1",
+      "topic": "Reading",
+      "peer": "Sander; Weise"
+    },
+    {
+      "week": 36,
+      "group": "6a.2",
+      "topic": "Maths",
+      "peer": "Reuter; Tolles"
+    },
+    {
+      "week": 39,
+      "group": "6a.2",
+      "topic": "Media",
+      "peer": "Weise"
+    },
+    {
+      "week": 36,
+      "group": "6a.2",
+      "topic": "Reading",
+      "peer": "Sander; Weise"
+    },
+    {
+      "week": 36,
+      "group": "6b.1",
+      "topic": "Maths",
+      "peer": "Pandur"
+    },
+    {
+      "week": 34,
+      "group": "6b.1",
+      "topic": "Media",
+      "peer": "Weise"
+    },
+    {
+      "week": 38,
+      "group": "6b.1",
+      "topic": "Reading",
+      "peer": "Bergmann"
+    },
+    {
+      "week": 35,
+      "group": "6c.1",
+      "topic": "Maths",
+      "peer": "Pandur"
+    },
+    {
+      "week": 39,
+      "group": "6c.1",
+      "topic": "Media",
+      "peer": "Weise"
+    },
+    {
+      "week": 34,
+      "group": "6c.1",
+      "topic": "Reading",
+      "peer": "Bergmann"
+    }
+  ],
+  "peer_loads": {
+    "Bergmann": 2,
+    "Pandur": 2,
+    "Reuter; Tolles": 2,
+    "Sander; Weise": 2,
+    "Simon": 1,
+    "Weise": 3
+  },
+  "week_loads": {
+    "34": 2,
+    "35": 2,
+    "36": 4,
+    "38": 1,
+    "39": 3
+  },
+  "unresolved": []
+}
