@@ -1,6 +1,6 @@
 """Rebuild the test fixture and its golden output.
 
-    uv run python tests/make_fixture.py
+    uv run python -m tests.make_fixture
 
 Both files are written from the data in tests/helpers.py, so running this twice
 changes nothing. Refresh it when the planner is supposed to produce a new plan.
@@ -9,7 +9,7 @@ changes nothing. Refresh it when the planner is supposed to produce a new plan.
 from __future__ import annotations
 
 from solver import load_workbook, solve
-from tests.helpers import EXPECTED, FIXTURE, make_fixture, read_expected, write_expected
+from tests.helpers import EXPECTED, make_fixture, write_expected
 
 
 def main() -> int:

@@ -1,0 +1,70 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+      - run: uv run pytest
+
+  build:
+    # The bundled executable has to be built on the system it runs on, so one job per
+    # platform. Only pushes produce them; a pull request just runs the tests.
+    needs: test
+    if: github.event_name == 'push'
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            binary: mentoring-planner.exe
+            label: windows
+          - os: ubuntu-latest
+            binary: mentoring-planner
+            label: linux
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+      - run: uv run pyinstaller --clean mentoring-planner.spec
+      - name: the bundle plans the example semester
+        shell: bash
+        run: |
+          dist/${{ matrix.binary }} --sample example.xlsx
+          dist/${{ matrix.binary }} example.xlsx
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mentoring-planner-${{ matrix.label }}
+          path: dist/${{ matrix.binary }}
+          if-no-files-found: error
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: mentoring-planner-*
+          merge-multiple: true
+      - name: attach the executables to this tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --generate-notes mentoring-planner mentoring-planner.exe
