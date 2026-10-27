@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import datetime
+
 import pytest
 
 from helpers import write_workbook
@@ -104,6 +106,19 @@ def test_german_headers_are_accepted(tmp_path):
     assert data.allowed_weeks(group(data, "6a.1"), peer(data, "Sander; Weise")) == (35,)
 
 
+def test_one_travelling_class_is_not_enough(tmp_path):
+    """A room opens only while a tutored class travels, so its own groups miss it."""
+
+    path = write_workbook(
+        tmp_path / "single.xlsx",
+        groups=[("6a.1", "6a"), ("6a.2", "6a")],
+        calendar_classes=["6a", "6b", "6c", "9a", "10a", "11a"],
+    )
+    with pytest.raises(WorkbookError) as error:
+        load_workbook(path)
+    assert "second class" in str(error.value)
+
+
 def test_a_class_that_is_not_in_the_calendar_is_an_error(tmp_path):
     path = write_workbook(
         tmp_path / "unknown.xlsx",
@@ -153,3 +168,51 @@ def test_duplicate_rows_are_an_error(tmp_path):
     with pytest.raises(WorkbookError) as error:
         load_workbook(path)
     assert "twice" in str(error.value)
+
+
+def calendar_weeks(tmp_path, header) -> tuple:
+    """A minimal workbook whose calendar header is written by the caller."""
+
+    from openpyxl import Workbook
+
+    wb = Workbook()
+    wb.remove(wb.active)
+    groups = wb.create_sheet("Groups")
+    groups.append(["Group", "Class"])
+    groups.append(["6a.1", "6a"])
+    groups.append(["6b.1", "6b"])
+    peers = wb.create_sheet("Peers")
+    peers.append(["Peers", "Topic", "Classes"])
+    peers.append(["Sander", "Reading", "9a"])
+    calendar = wb.create_sheet("Calendar")
+    calendar.append(["Class"] + list(header))
+    calendar.append(["6a", "x", "", ""])
+    calendar.append(["6b", "", "x", ""])
+    calendar.append(["9a", "", "", "x"])
+    path = tmp_path / "calendar.xlsx"
+    wb.save(path)
+    data = load_workbook(path)
+    assert data.trips == {"6a": {data.weeks[0]}, "6b": {data.weeks[1]}, "9a": {data.weeks[2]}}
+    return data.weeks
+
+
+@pytest.mark.parametrize(
+    "header,expected",
+    [
+        (["W34", "W35", "W36"], (34, 35, 36)),
+        (["KW34", "KW35", "KW36"], (34, 35, 36)),
+        ([34, 35, 36], (34, 35, 36)),
+        (
+            [datetime.date(2026, 10, 26), datetime.date(2026, 11, 2), datetime.date(2026, 11, 9)],
+            (44, 45, 46),  # the Mondays of ISO weeks 44 to 46
+        ),
+    ],
+)
+def test_the_calendar_header_accepts_week_labels_and_dates(tmp_path, header, expected):
+    assert calendar_weeks(tmp_path, header) == expected
+
+
+def test_a_calendar_row_is_not_mistaken_for_the_week_header(tmp_path):
+    """Blank trip marks must not be read as week numbers, or every week is lost."""
+
+    assert calendar_weeks(tmp_path, ["W34", "W35", "W36"]) == (34, 35, 36)

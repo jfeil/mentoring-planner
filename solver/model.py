@@ -59,6 +59,9 @@ SETTINGS_KEYS = {
 }
 TOPIC_ORDER_SHEETS = ("topics", "themen")
 
+# A calendar header cell: 36, W36 or KW36. Anchored, so class names like '6a' are not weeks.
+WEEK_HEADER = re.compile(r"(?:kw|w)?\s*(\d{1,2})")
+
 TRUE_WORDS = {"x", "a", "j", "ja", "y", "yes", "true", "1", "trip", "out", "untericht", "ausflug", "fehlt"}
 
 
@@ -197,7 +200,14 @@ def load_workbook(path: Path) -> Data:
     if groups and weeks and not any(trips.get(cls) for cls in tutored):
         problems.append(
             "none of the classes the groups come from is ever on a trip, so a room is never "
-            "free and no session can be planned"
+            "free and no session can be planned - mark the trips in the calendar sheet"
+        )
+    elif len(tutored) == 1 and groups:
+        (only,) = sorted(tutored)
+        problems.append(
+            f"all groups come from the one class '{only}', and a room only opens while a "
+            "tutored class travels - so that class is away in every week a room is free and "
+            "none of its groups can ever meet; list a second class that travels too"
         )
 
     if problems:
@@ -377,10 +387,16 @@ def _read_calendar(ws, problems: list[str]):
     header_row = 1
     for row in range(1, min(ws.max_row, 8) + 1):
         found = [
-            (col, _week_number(ws.cell(row, col).value))
+            (col, _week_header(ws.cell(row, col).value))
             for col in range(2, ws.max_column + 1)
         ]
-        if sum(v is not None for _, v in found) >= 2:
+        marks = sum(
+            1
+            for col in range(2, ws.max_column + 1)
+            if _norm(str(ws.cell(row, col).value or "")) in TRUE_WORDS
+        )
+        weeks_found = sum(v is not None for _, v in found)
+        if weeks_found >= 1 and marks == 0 and _week_header(ws.cell(row, 1).value) is None:
             header_row = row
             week_numbers = [v for _, v in found if v is not None]
             break
@@ -414,14 +430,16 @@ def _read_calendar(ws, problems: list[str]):
     return tuple(classes), trips, week_numbers
 
 
-def _week_number(value) -> int | None:
-    if value is None:
+def _week_header(value) -> int | None:
+    """A calendar header cell: 36, W36, KW36 or a date; anything else is not a week."""
+
+    if isinstance(value, bool) or value is None:
         return None
-    if isinstance(value, (int, float)) and not isinstance(value, bool):
-        return int(value)
     if isinstance(value, (datetime.datetime, datetime.date)):
         return value.isocalendar()[1]
-    match = re.search(r"(\d{1,2})", str(value))
+    if isinstance(value, int) or (isinstance(value, float) and value.is_integer()):
+        return int(value)
+    match = WEEK_HEADER.fullmatch(_norm(str(value)))
     return int(match.group(1)) if match else None
 
 
